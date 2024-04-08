@@ -1,4 +1,4 @@
-EC530: PEER-TO-PEER MESSAGING CHATROOM
+## EC530: PEER-TO-PEER MESSAGING CHATROOM
 
 This is an implementation of a P2P messaging chatroom. 
 
