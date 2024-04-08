@@ -16,6 +16,10 @@ Once connected to the common port, each client has access to the chatroom to sen
 
 To close the connection, simply close the terminal window. 
 
+Implementation examples:
+![image](https://github.com/avantika747/EC530---P2P/assets/66120758/03a0082d-60b1-451b-91c8-ad411151ec55)
+
+
 
 
 
