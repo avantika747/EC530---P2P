@@ -42,6 +42,12 @@ class P2PChat:
 
     def handle_peer(self, client_socket, addr):
         username = client_socket.recv(1024).decode("utf-8")
+        # sanitizing inputs by ensuring that the username has only 1-20 characters 
+        # allowed characters are alphanumeric and underscores
+        if not (1 <= len(username) <= 20):
+            return False
+        if not username.isalnum() and '_' not in username:
+            return False
         peer = Peer(username, addr[0], addr[1])
         self.peers.append(peer)
         print(f"User '{username}' connected from {addr[0]}:{addr[1]}")
@@ -57,11 +63,24 @@ class P2PChat:
 
     def save_message(self, sender, recipient, message):
         cursor = self.db_connection.cursor()
-        cursor.execute("INSERT INTO messages (sender, recipient, message) VALUES (?, ?, ?)",
+        cursor.execute("INSERT INTO messages (sender, recipient, message) VALUES (?, ?, ?)", 
                        (sender, recipient, message))
         self.db_connection.commit()
+        # including parameterized queries (?, ?, ?) to protect against input injections
+        # the ? act as placeholders to make sure the inputs don't accidentally become SQL commands
+
+    def get_messages(self, recipient):
+        cursor = self.db_connection.cursor()
+        cursor.execute("SELECT sender, message, timestamp FROM messages WHERE recipient = ?", (recipient,))
+        messages = cursor.fetchall()
+        return messages
+        # similar type of placeholders placed here to define the query separately from the data
 
     def send_message(self, recipient, message):
+        # placing a check on the length of the message sent 
+        # to make sure that the maximum length of the message is <= 100
+        if not(1 <= len(message) <= 100):
+            return False
         for peer in self.peers:
             if peer.username == recipient:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sender_socket:
@@ -74,6 +93,7 @@ class P2PChat:
             client_socket, addr = self.server_socket.accept()
             client_thread = threading.Thread(target=self.handle_peer, args=(client_socket, addr))
             client_thread.start()
+            
 class P2PClient:
     def __init__(self, username, ip, port):
         self.username = username
